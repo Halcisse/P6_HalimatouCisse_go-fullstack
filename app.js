@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const usersRoutes = require("./routes/user");
 const saucesRoutes = require("./routes/sauces");
+const path = require("path");
 
 //Connexion à la base de donnée
 mongoose
@@ -32,5 +33,6 @@ app.use(express.json());
 
 app.use("/api/auth", usersRoutes);
 app.use("/api/sauces", saucesRoutes);
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 module.exports = app;

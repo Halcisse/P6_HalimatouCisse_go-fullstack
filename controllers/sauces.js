@@ -1,4 +1,5 @@
 const Sauce = require("../models/sauces");
+const fs = require("fs"); // accéder au système de gestion des fichiers
 
 // Pour afficher toutes les sauces
 exports.getAllSauces = (req, res, next) => {
@@ -31,8 +32,12 @@ exports.getOneSauce = (req, res, next) => {
 
 //Pour créer une sauce
 exports.createSauce = (req, res, next) => {
+  const sauceObject = JSON.parse(req.body.sauce);
   const sauce = new Sauce({
-    ...req.body, // ... = spread : récupère toutes les infos du modèle dans le body de la req
+    ...sauceObject, // ... = spread : récupère toutes les infos du modèle dans le body de la req
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`, // on récupère l'url de l'image, protocol = http ou https, host = localhost
   });
   sauce
     .save() // save enregistre l'objet crée dans la bdd
@@ -50,10 +55,15 @@ exports.createSauce = (req, res, next) => {
 
 //Pour modifier une sauce
 exports.modifySauce = (req, res, next) => {
-  const sauce = new Sauce({
-    ...req.body,
-  });
-  Sauce.updateOne({ _id: req.params.id }, sauce) // arg 1 = objet de comparaison, arg 2 = nouvel objet
+  const sauceObject = req.file
+    ? {
+        ...JSON.parse(req.body.sauce),
+        imageUrl: `${req.protocol}://${req.get("host")}/images/${
+          req.file.filename
+        }`,
+      }
+    : { ...req.body };
+  Sauce.updateOne({ _id: req.params.id }, { sauceObject, _id: req.params.id }) // arg 1 = objet de comparaison, arg 2 = nouvel objet
     .then(() => {
       res.status(201).json({
         message: "Sauce modifiée avec succès!",
@@ -66,35 +76,36 @@ exports.modifySauce = (req, res, next) => {
     });
 };
 
-// const auth = require("../middleware/auth");
 
 //Pour supprimer une sauce
 exports.deleteSauce = (req, res, next) => {
-  Sauce.findOne({ _id: req.params.id }).then((sauce) => {
-    if (!sauce) {
-      // si la sauce est non trouvé
-      res.status(404).json({
-        error: new Error("Cette sauce n'existe pas!"),
-      });
-    }
-    if (sauce.userId !== req.auth.userId) {
-      // Si l'id de l'utilisateur est diff de l'id de la personne ayant crée la sauce
-      res.status(400).json({
-        error: new Error("Accès non autorisé!"),
-      });
-    }
-    Sauce.deleteOne({ _id: req.params.id }) // ...SINON
-      .then(() => {
-        res.status(200).json({
-          message: "La sauce a été supprimée avec succès!",
+  Sauce.findOne({ _id: req.params.id })
+    .then((sauce) => {
+      if (!sauce) {
+        // si la sauce est non trouvé
+        res.status(404).json({
+          error: new Error("Cette sauce n'existe pas!"),
         });
-      })
-      .catch((error) => {
+      }
+      if (sauce.userId !== req.auth.userId) {
+        // Si l'id de l'utilisateur est diff de l'id de la personne ayant crée la sauce
         res.status(400).json({
-          error: error,
+          error: new Error("Accès non autorisé!"),
         });
+      }
+      //...sinon
+      const filename = sauce.imageUrl.split("/images/")[1]; // on recherche le nom du fichier image et on supprime le fichier
+      fs.unlink(`images/${filename}`, () => {
+        Sauce.deleteOne({ _id: req.params.id }) // puis on supprime la sauce
+          .then(() =>
+            res
+              .status(200)
+              .json({ message: "La sauce a été supprimée avec succès!!" })
+          )
+          .catch((error) => res.status(400).json({ error }));
       });
-  });
+    })
+    .catch((error) => res.status(500).json({ error }));
 };
 
 //Pour like/dislike une sauce ***
