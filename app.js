@@ -1,11 +1,12 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const Thing = require("./models/Thing");
+const usersRoutes = require("./routes/user");
+const saucesRoutes = require("./routes/sauces");
 
+//Connexion à la base de donnée
 mongoose
   .connect(
-    "mongodb+srv://HalimatouCisse:Halie224@halimatoucisse.tgmrw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    "mongodb+srv://HalimaOcPiquante:QMG9XTwH3NQXaqjE@halimatoucisse.tgmrw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log("Connexion à MongoDB réussie !"))
@@ -13,6 +14,7 @@ mongoose
 
 const app = express();
 
+// permet de gérer les erreurs de connexion sur plusieurs serveurs (CORS)
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -26,29 +28,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.post("/api/stuff", (req, res, next) => {
-  delete req.body._id;
-  const thing = new Thing({
-    ...req.body,
-  });
-  thing
-    .save()
-    .then(() => res.status(201).json({ message: "Objet enregistré !" }))
-    .catch((error) => res.status(400).json({ error }));
-});
-
-app.get("/api/stuff/:id", (req, res, next) => {
-  Thing.findOne({ _id: req.params.id })
-    .then((thing) => res.status(200).json(thing))
-    .catch((error) => res.status(404).json({ error }));
-});
-
-app.get("/api/stuff", (req, res, next) => {
-  Thing.find()
-    .then((things) => res.status(200).json(things))
-    .catch((error) => res.status(400).json({ error }));
-});
+app.use("/api/auth", usersRoutes);
+app.use("/api/sauces", saucesRoutes);
 
 module.exports = app;
