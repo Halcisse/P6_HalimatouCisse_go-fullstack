@@ -30,7 +30,7 @@ exports.getOneSauce = (req, res, next) => {
     });
 };
 
-//Pour créer une sauce
+//Pour créer une sauce = POST
 exports.createSauce = (req, res, next) => {
   const sauceObject = JSON.parse(req.body.sauce);
   const sauce = new Sauce({
@@ -38,19 +38,28 @@ exports.createSauce = (req, res, next) => {
     imageUrl: `${req.protocol}://${req.get("host")}/images/${
       req.file.filename
     }`, // on récupère l'url de l'image, protocol = http ou https, host = localhost
+    usersLiked: [], // on initialise les tableaux vides
+    usersDisliked: [],
   });
-  sauce
-    .save() // save enregistre l'objet crée dans la bdd
-    .then(() => {
-      res.status(201).json({
-        message: "Sauce ajoutée avec succès!",
-      });
-    })
-    .catch((error) => {
-      res.status(400).json({
-        error: error,
-      });
+  if (sauceObject.userId !== req.auth.userId) {
+    // on compare les id
+    res.status(403).json({
+      error: new error("Vous n'êtes pas autorisé à mener cette action"),
     });
+  } else {
+    sauce
+      .save() // save enregistre l'objet crée dans la bdd
+      .then(() => {
+        res.status(201).json({
+          message: "Sauce ajoutée avec succès!",
+        });
+      })
+      .catch((error) => {
+        res.status(400).json({
+          error: error,
+        });
+      });
+  }
 };
 
 //Pour modifier une sauce
@@ -75,7 +84,6 @@ exports.modifySauce = (req, res, next) => {
       });
     });
 };
-
 
 //Pour supprimer une sauce
 exports.deleteSauce = (req, res, next) => {

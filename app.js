@@ -1,8 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
+const app = express();
+
 const usersRoutes = require("./routes/user");
 const saucesRoutes = require("./routes/sauces");
-const path = require("path");
 
 //Connexion à la base de donnée
 mongoose
@@ -12,8 +14,6 @@ mongoose
   )
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
-
-const app = express();
 
 // permet de gérer les erreurs de connexion sur plusieurs serveurs (CORS)
 app.use((req, res, next) => {

@@ -1,7 +1,6 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -18,5 +17,15 @@
     "mongoose-unique-validator": "^3.0.0",
     "multer": "^1.4.4",
     "nodemon": "^2.0.16"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Halcisse/P6_construisez-une-api-securisee-HalimatouCisse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Halcisse/P6_construisez-une-api-securisee-HalimatouCisse/issues"
+  },
+  "homepage": "https://github.com/Halcisse/P6_construisez-une-api-securisee-HalimatouCisse#readme",
+  "description": ""
 }

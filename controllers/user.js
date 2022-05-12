@@ -7,7 +7,7 @@ exports.signup = (req, res, next) => {
   bcrypt // hachage du mot de passe
     .hash(req.body.password, 10)
     .then((hash) => {
-      const user = new user({
+      const user = new User({
         email: req.body.email,
         password: hash, // le mot de passe haché est enregistré dans la bdd
       });
@@ -43,5 +43,5 @@ exports.login = (req, res, next) => {
         })
         .catch((error) => res.status(500).json({ error }));
     })
-    .catch((error) => res.status(500).json({ error })); // s'il y a un pb de connexion 
+    .catch((error) => res.status(500).json({ error })); // s'il y a un pb de connexion
 };

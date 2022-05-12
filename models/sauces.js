@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const saucesShema = mongoose.Schema({
   userId: { type: String, required: true },
   name: { type: String, required: true },
@@ -7,8 +8,8 @@ const saucesShema = mongoose.Schema({
   mainPepper: { type: String, required: true },
   imageUrl: { type: String, required: true },
   heat: { type: Number, required: true },
-  likes: { type: Number, required: true },
-  dislikes: { type: Number, required: true },
+  likes: { type: Number, default: 0 },
+  dislikes: { type: Number, default: 0 },
   usersLiked: { type: ["String <userId>"], required: true },
   usersDisliked: { type: ["String <userId>"], required: true },
 });
