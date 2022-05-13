@@ -3,7 +3,7 @@ const router = express.Router();
 
 const saucesCtrl = require("../controllers/sauces");
 const auth = require("../middleware/auth");
-const multer = require("multer"); // gère l'ajout de fichiers
+const multer = require("../middleware/multer-config"); // gère l'ajout de fichiers
 
 router.get("/", auth, saucesCtrl.getAllSauces);
 router.get("/:id", auth, saucesCtrl.getOneSauce);
