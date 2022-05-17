@@ -1,4 +1,5 @@
 const Sauce = require("../models/sauces");
+const auth = require("../middleware/auth");
 const fs = require("fs"); // accéder au système de gestion des fichiers
 
 // Pour afficher toutes les sauces = GET
@@ -59,18 +60,20 @@ exports.createSauce = (req, res, next) => {
 
 //Pour modifier une sauce = PUT
 exports.modifySauce = (req, res, next) => {
-  const sauceObject = req.file
+  const sauceObject = req.file // on vérifie s'il y a un nouveau fichier lors de la modif avec ?
     ? {
+        // si oui, on met à jour en prenant en compte le fichier
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get("host")}/images/${
           req.file.filename
         }`,
       }
-    : { ...req.body };
+    : { ...req.body }; // ...SINON on met simplement à jours les modifs
   Sauce.updateOne(
     { _id: req.params.id },
     { ...sauceObject, _id: req.params.id }
-  ) // arg 1 = objet de comparaison, arg 2 = nouvel objet
+  )
+
     .then(() => {
       res.status(200).json({
         message: "Sauce modifiée avec succès!",
@@ -107,4 +110,81 @@ exports.deleteSauce = (req, res, next) => {
     .catch((error) => res.status(500).json({ error }));
 };
 
-//Pour like/dislike une sauce ***
+//Pour like/dislike une sauce = POST ***
+exports.likeSauce = (req, res, next) => {
+  Sauce.findOne({ _id: req.params.id })
+    .then((sauce) => {
+      if (
+        // si le user like une sauce pour la première fois
+        req.body.like === 1 &&
+        !sauce.usersLiked.includes(req.body.userId) &&
+        !sauce.usersDisliked.includes(req.body.userId)
+      ) {
+        Sauce.updateOne(
+          { _id: req.params.id },
+          {
+            $inc: { likes: 1 },
+            $push: { usersLiked: req.body.userId },
+          }
+        )
+          .then(() =>
+            res.status(201).json({ message: "Tu as liké cette sauce!" })
+          )
+          .catch((error) => res.status(400).json({ error }));
+      } else if (
+        // s'il souhaite liker une sauce qu'il a déja liké
+        req.body.like === 0 &&
+        sauce.usersLiked.includes(req.body.userId)
+      ) {
+        Sauce.updateOne(
+          {
+            _id: req.params.id,
+          },
+          { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } }
+        )
+          .then(() =>
+            res
+              .status(200)
+              .json({ message: "Tu as changé d'avis sur cette sauce!" })
+          )
+          .catch((error) => res.status(400).json({ error }));
+      } else if (
+        // si le user dislike une sauce pour la première fois
+        req.body.like === -1 &&
+        !sauce.usersLiked.includes(req.body.userId) &&
+        !sauce.usersDisliked.includes(req.body.userId)
+      ) {
+        Sauce.updateOne(
+          { _id: req.params.id },
+          {
+            $inc: { dislikes: 1 },
+            $push: { usersDisliked: req.body.userId },
+          }
+        )
+          .then(() =>
+            res
+              .status(201)
+              .json({ message: "Dommage, tu n'aimes pas cette sauce!" })
+          )
+          .catch((error) => res.status(400).json({ error }));
+      } else if (
+        // s'il souhaite disliker une sauce qu'il a déja dislike
+        req.body.like === 0 &&
+        sauce.usersDisliked.includes(req.body.userId)
+      ) {
+        Sauce.updateOne(
+          {
+            _id: req.params.id,
+          },
+          { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } }
+        )
+          .then(() =>
+            res
+              .status(200)
+              .json({ message: "Tu as changé d'avis sur cette sauce!" })
+          )
+          .catch((error) => res.status(400).json({ error }));
+      }
+    })
+    .catch((error) => res.status(400).json({ error }));
+};
