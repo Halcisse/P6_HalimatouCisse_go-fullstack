@@ -60,30 +60,52 @@ exports.createSauce = (req, res, next) => {
 
 //Pour modifier une sauce = PUT
 exports.modifySauce = (req, res, next) => {
-  const sauceObject = req.file // on vérifie s'il y a un nouveau fichier lors de la modif avec ?
-    ? {
-        // si oui, on met à jour en prenant en compte le nouveau fichier
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get("host")}/images/${
-          req.file.filename
-        }`,
+  Sauce.findOne({ _id: req.params.id })
+    .then((sauce) => {
+      if (!sauce) {
+        // si la sauce est non trouvé
+        res.status(404).json({
+          error: new Error("Cette sauce n'existe pas!"),
+        });
       }
-    : { ...req.body }; // ...SINON on met simplement à jours les modifs
-  Sauce.updateOne(
-    { _id: req.params.id },
-    { ...sauceObject, _id: req.params.id }
-  )
-
-    .then(() => {
-      res.status(200).json({
-        message: "Sauce modifiée avec succès!",
-      });
+      if (req.file) {
+        // s'il y a un fichier dans les éléments à modifier
+        const filename = sauce.imageUrl.split("/images/")[1]; //on récupère le nom du fichier
+        fs.unlink(`images/${filename}`, () => {
+          //... on le supprime et on met à jour la sauce
+          const sauceObject = {
+            ...JSON.parse(req.body.sauce),
+            imageUrl: `${req.protocol}://${req.get("host")}/images/${
+              req.file.filename
+            }`,
+          };
+          Sauce.updateOne(
+            { _id: req.params.id },
+            { ...sauceObject, _id: req.params.id }
+          )
+            .then(() =>
+              res
+                .status(200)
+                .json({ message: "La sauce a été modifiée avec succès!!" })
+            )
+            .catch((error) => res.status(400).json({ error }));
+        });
+      } else if (!req.file) {
+        // s'il n'y a pas de fichier dans les changements, on modife simplement
+        const sauceObject = { ...req.body };
+        Sauce.updateOne(
+          { _id: req.params.id },
+          { ...sauceObject, _id: req.params.id }
+        )
+          .then(() =>
+            res
+              .status(200)
+              .json({ message: "La sauce a été modifiée avec succès!!" })
+          )
+          .catch((error) => res.status(400).json({ error }));
+      }
     })
-    .catch((error) => {
-      res.status(400).json({
-        error: error,
-      });
-    });
+    .catch((error) => res.status(500).json({ error }));
 };
 
 //Pour supprimer une sauce = DELETE
