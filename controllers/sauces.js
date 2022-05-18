@@ -62,7 +62,7 @@ exports.createSauce = (req, res, next) => {
 exports.modifySauce = (req, res, next) => {
   const sauceObject = req.file // on vérifie s'il y a un nouveau fichier lors de la modif avec ?
     ? {
-        // si oui, on met à jour en prenant en compte le fichier
+        // si oui, on met à jour en prenant en compte le nouveau fichier
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get("host")}/images/${
           req.file.filename
@@ -110,7 +110,7 @@ exports.deleteSauce = (req, res, next) => {
     .catch((error) => res.status(500).json({ error }));
 };
 
-//Pour like/dislike une sauce = POST ***
+//Pour like/dislike une sauce = POST
 exports.likeSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
