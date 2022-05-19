@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
 require("dotenv").config();
+const helmet = require("helmet");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(helmet()); // Sécurise le serveur Express
 app.use(express.json()); // les requetes entrantes sont parsés en json
 
 // on definis les routes vers les dossiers "routes"
