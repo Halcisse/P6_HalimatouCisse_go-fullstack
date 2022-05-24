@@ -4,6 +4,13 @@ const mongoose = require("mongoose");
 const path = require("path");
 require("dotenv").config();
 const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Il y a eu trop de requêtes depuis cette adresse IP!",
+});
 
 const app = express();
 
@@ -34,6 +41,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(limiter); // Sécurise l'authentification
 app.use(helmet()); // Sécurise le serveur Express
 app.use(express.json()); // les requetes entrantes sont parsés en json
 
