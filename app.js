@@ -41,9 +41,13 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(limiter); // Sécurise l'authentification
-app.use(helmet()); // Sécurise le serveur Express
 app.use(express.json()); // les requetes entrantes sont parsés en json
+app.use(limiter); // Sécurise l'authentification
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+); // Sécurise le serveur Express
 
 // on definis les routes vers les dossiers "routes"
 app.use("/api/auth", usersRoutes);
